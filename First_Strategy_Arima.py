@@ -117,7 +117,7 @@ def trade():
         for i in range(0,20):
             predict_price.append(last_price*(np.exp(predict[i])))
             last_price=last_price*(np.exp(predict[i])) 
-                         
+            #retain about 5 mins to run the model, so [5:19] is used             
         if (max(predict_price[5:19])-data["close"].iloc[-1] > cost) & (data["close"].iloc[-1]-min(predict_price[5:19]) > max(predict_price[5:19])-data["close"].iloc[-1]) & position_table[-1] !=1:                
             position_table.append(1)         
             order["order"]["type"]="MARKET"
