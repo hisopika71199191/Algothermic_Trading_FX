@@ -56,9 +56,10 @@ histdata_0=histdata_0[["instrument","times","bid","ask"]]
 #histdata_1=histdata_1[["instrument","times","bid","ask"]]
 
 price_dict={"instrument":[],'times':[],'bid':[],'ask':[]}
+
 #%%
 ##############################class and functions
-##############################class and functions
+
 class settings:
     def __init__(self,account_id,key,curl,oanda20,oanda,instruments,position_table,order,position,histdata_0,price_dict,trade_units):
         self.account_id=account_id
@@ -249,7 +250,7 @@ class strategy_trade(order_maker,quant_models,settings):
         
             
 #%%        
-#####price/data
+################### Applying Class
 price_streaming_var=price_streaming(account_id=account_id,key=key,curl=curl,oanda20=oanda20,
                                     oanda=oanda,instruments=instruments,position_table=position_table,order=order,
                                     position=position,histdata_0=histdata_0,price_dict=price_dict,trade_units=trade_units)
@@ -273,6 +274,7 @@ strategy_trade_var=strategy_trade(account_id=account_id,key=key,curl=curl,oanda2
 
 
 #%%
+########################### Trade
 index=0
 wait=0
 while 1==1:
