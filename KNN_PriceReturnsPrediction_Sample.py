@@ -59,9 +59,8 @@ price_dict={"instrument":[],'times':[],'bid':[],'ask':[]}
 
 #%%
 ##############################class and functions
-
 class settings:
-    def __init__(self,account_id,key,curl,oanda20,oanda,instruments,position_table,order,position,histdata_0,price_dict,trade_units):
+    def __init__(self,account_id,key,curl,oanda20,oanda,instruments,position_table,order,position,trade_units_0):
         self.account_id=account_id
         self.key=key
         self.curl=curl
@@ -70,45 +69,60 @@ class settings:
         self.instruments=instruments
         self.position_table=position_table
         self.order=order
-        self.position=position
-        self.histdata_0=histdata_0
-        #self.histdata_1=histdata_1
-        self.price_dict=price_dict
-        self.trade_units=trade_units
-
+        self.position=position 
+        self.trade_units_0=trade_units_0
 
 class price_streaming(settings):   
-    def looping_price(self,i): #run in another console
-        data_0=pd.DataFrame.from_dict(self.price_dict)[["instrument",'times','bid','ask']]       
+    def looping_price(self,histdata,i):
+        global price_dict
+        global price_table
         #while True:
+        time.sleep(1)    
         response_i = self.oanda.get_prices(instruments=instruments[i],tz="UTC+8")
-        prices_i = response_i["prices"]        
-        self.price_dict["times"].append(prices_i[i]["time"])          
-        self.price_dict["bid"].append(float(prices_i[i]["bid"]))         
-        self.price_dict["ask"].append(float(prices_i[i]["ask"]))
-        self.price_dict["instrument"].append(prices_i[i]["instrument"])
-        price_table=pd.DataFrame.from_dict(self.price_dict)[["instrument",'times','bid','ask']]
+        time.sleep(1)
+        prices_i = response_i["prices"]
+        time.sleep(1)
+        price_dict["times"].append(prices_i[0]["time"])  #The new data stored in price_dict 
+        price_dict["bid"].append(float(prices_i[0]["bid"]))         
+        price_dict["ask"].append(float(prices_i[0]["ask"]))
+        price_dict["instrument"].append(prices_i[0]["instrument"])
+        price_table=pd.DataFrame.from_dict(price_dict)[["instrument",'times','bid','ask']]
         price_table['times']=pd.to_datetime(price_table['times'],format="%Y-%m-%dT%H:%M:%S.%fZ").apply(lambda x: x.replace(microsecond=0))
         price_table['times']=price_table['times'].apply(lambda x: x.replace(second=0))
-        price_table['times']=price_table['times'].apply(lambda x: x + timedelta(hours=8))        
-        price_table.drop_duplicates(subset='times', keep='last', inplace=True)
-        price_table.reset_index(inplace=True,drop=True)       
+        price_table['times']=price_table['times'].apply(lambda x: x + timedelta(hours=8))
+#        price_table.drop_duplicates(subset='times', keep='last', inplace=True)
+#        price_table.reset_index(inplace=True,drop=True)                          
         price_table_0=price_table[price_table.instrument==self.instruments[i]]
-        data_0 = self.histdata_0.append(price_table_0)
-        data_0["mid"] =(data_0["bid"] + data_0["ask"])/2       
-        data_0.to_csv('C:\\Users\\hisop\\Desktop\\MATHS&IT\\Project\\OANDA\\data\\'+self.instruments[i]+"\\"+self.instruments[i]+'_stream.csv',index=False,header=False)    
-        return(data_0)    
-    @jit
+        price_table_0.drop_duplicates(subset='times', keep='first', inplace=True)
+        price_table_0.reset_index(inplace=True,drop=True)       
+        data_0 = histdata.append(price_table_0)
+        data_0['times']=pd.to_datetime(data_0.times)
+        data_0=data_0.sort_values(by='times')
+        data_0.drop_duplicates(subset='times', keep='last', inplace=True)
+        data_0["mid"] =(data_0["bid"] + data_0["ask"])/2       #if price_dict is cleared, _stream_csv is distorted
+        data_0.to_csv('C:\\Users\\user\\Desktop\\MATHS&IT\\Project\\OANDA\\data\\'+self.instruments[i]+"\\"+self.instruments[i]+'_stream.csv',index=False,header=False)    
+        return data_0      
+
     def read_data(self,data,i):
         data_0=data
         data_0.columns=["instrument","times",self.instruments[i]+"_bid",self.instruments[i]+"_ask",self.instruments[i]+"_mid"]
-		#Now just read the consolidated dataset from global enivironemt instead of reading csv
-        #data_0=pd.read_csv('C:\\Users\\hisop\\Desktop\\MATHS&IT\\Project\\OANDA\\data\\'+self.instruments[i]+"\\"+self.instruments[i]+'_stream.csv',names=["instrument","times",self.instruments[i]+"_bid",self.instruments[i]+"_ask",self.instruments[i]+"_mid"])
+        #data_0=pd.read_csv('C:\\Users\\user\\Desktop\\MATHS&IT\\Project\\OANDA\\data\\'+self.instruments[i]+"\\"+self.instruments[i]+'_stream.csv',names=["instrument","times",self.instruments[i]+"_bid",self.instruments[i]+"_ask",self.instruments[i]+"_mid"])
         data_0.drop('instrument', axis=1, inplace=True)
+ #       chane to  5 miuntes interval:
+  #      data_0.index=data_0['times']
+  #      data_0.index=data_0.index.to_datetime()
+#        min_5= data_0.index.to_series().dt.minute.isin([0, 5, 10, 15, 20,25,30,35,40,45,50,55]) 
+ #       data_0=data_0.loc[min_5]
+#        chane to  15 miuntes interval:
+#        data_0.index=data_0['times']
+#        data_0.index=data_0.index.to_datetime()
+#        min_15= data_0.index.to_series().dt.minute.isin([0, 15,30,45]) 
+#        data_0=data_0.loc[min_15]
         return data_0  
 
-class order_maker(price_streaming):
-    @jit        
+
+    
+class order_maker(price_streaming):       
     def create_order(self,ordertype,units,instrument_index):
         self.order["order"]["type"]=ordertype
         self.order["order"]["units"]=units                               #str(position_table[-1]*100)      
@@ -126,7 +140,6 @@ class order_maker(price_streaming):
                                               instrument=self.instruments[instrument_index],
                                               data=position)
         self.oanda20.request(close)
-
 
 
 class quant_models(price_streaming,settings):
@@ -280,9 +293,8 @@ wait=0
 while 1==1:
     time_start=datetime.now()
     time.sleep(1)
-    data=price_streaming_var.looping_price(i=0) 
-    time.sleep(1)
-    dataset=price_streaming_var.read_data(data=data,i=0)
+    data_0=price_streaming_var.looping_price(histdata=histdata_0,i=0)
+    dataset=price_streaming_var.read_data(data=data_0,i=0)
     print(dataset.tail(1))
     try:    
         strategy_trade_var.trade(dataset=dataset,window_size=window_size,i=0)
