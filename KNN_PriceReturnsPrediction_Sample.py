@@ -24,7 +24,7 @@ sys.path.append('C:\\Users\\user\\Desktop\\MATHS&IT\\Project\\OANDA')
 account_id ="<OANDA ACCOUNT ID>"
 key = "<OANDA API>"
 curl = pycurl.Curl()
-curl.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer 9c274108805eae5e68978df2344d7050-f3d570fa97f654c8067629af5714b8ee'])
+curl.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer <OANDA API>'])
 oanda20 = opV20.API(access_token=key,environment="practice")
 oanda = op.API(environment="practice", access_token=key)
 
