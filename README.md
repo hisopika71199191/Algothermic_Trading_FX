@@ -5,5 +5,8 @@
 -Share the ideas of my own or other sources about FX trading.
 
 
+###File created in chronologically ascending order:
 
+1,KNN_PriceReturnsPrediction_Sample.py 
+2,EMA_momentum_backtest.ipynb
 
