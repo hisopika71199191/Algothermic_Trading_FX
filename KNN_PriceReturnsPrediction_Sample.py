@@ -1,5 +1,5 @@
 #Description: use KNN to learn the historical price returns to predict next returns
-
+#sample script
 
 ##library
 import numpy as np
