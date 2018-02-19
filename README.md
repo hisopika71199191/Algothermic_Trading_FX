@@ -7,6 +7,6 @@
 
 ###File created in chronologically ascending order:
 
-1,KNN_PriceReturnsPrediction_Sample.py 
+1,KNN_PriceReturnsPrediction_Sample.py \
 2,EMA_momentum_backtest.ipynb
 
